@@ -1,0 +1,98 @@
+const express = require("express");
+const app = express();
+const users = require("./routes/user.js");
+const posts = require("./routes/post.js");
+const session = require("express-session");
+const flash = require("connect-flash");
+const path = require("path");
+
+// set views engine
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+const sessionOptions = {
+  secret: "mysupersecretstring",
+  resave: false,
+  saveUninitialized: true,
+};
+
+app.use(session(sessionOptions));
+app.use(flash());
+
+// added the mideware for local messages
+app.use((req, res, next) => {
+  res.locals.successMsg = req.flash("success");
+  res.locals.errorMsg = req.flash("error");
+  next();
+});
+
+app.get("/register", (req, res) => {
+  let { name = "anonymous" } = req.query;
+  req.session.name = name;
+
+  if (name === "anonymous") {
+    req.flash("error", "user not registered");
+  } else {
+    req.flash("success", "user registerd successfully");
+  }
+
+  res.redirect("hello");
+});
+
+app.get("/hello", (req, res) => {
+  res.render("page.ejs", { name: req.session.name });
+});
+
+// app.get("/reqcount", (req, res) => {
+//   if (req.session.count) {
+//     req.session.count++;
+//   } else {
+//     req.session.count = 1;
+//   }
+
+//   res.send(`You sent a request ${req.session.count} times`);
+// });
+
+// app.get("/test", (req, res) => {
+//   res.send("test successful!");
+// });
+
+// const cookieParser = require("cookie-parser");
+// app.use(cookieParser("secretcode"));
+
+// app.get("/getdsignedcookie", (req, res) => {
+//   res.cookie("colour", "red", { signed: true });
+//   res.cookie("made-in", "india", { signed: true });
+//   res.send("done");
+// });
+
+// app.get("/verify", (req, res) => {
+//   console.log(req.signedCookies);
+//   res.send("verified");
+// });
+
+// app.get("/getcookies", (req, res) => {
+//   res.cookie("greet", "hello");
+//   res.cookie("maideIn", "Namste");
+//   res.send("send you some cookies!");
+// });
+
+// app.get("/greet", (req, res) => {
+//   let { name = "anonymous" } = req.cookies;
+//   res.send(`Hi, ${name}`);
+// });
+
+// app.get("/", (req, res) => {
+//   console.dir(req.cookies);
+//   res.send("Hi, IO am root!");
+// });
+
+// // for user route
+// app.use("/users", users);
+
+// // for post route
+// app.use("/posts", posts);
+
+app.listen(3000, () => {
+  console.log("server is listing to 3000");
+});

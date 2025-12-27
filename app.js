@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV != "production") {
+  require("dotenv").config();
+}
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -16,9 +20,11 @@ const listingsRouter = require("./routes/listings.js");
 const reviewsRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 
+// const MONGO_URL =
+//   process.env.MONGO_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
-const MONGO_URL =
-  process.env.MONGO_URL || "mongodb://127.0.0.1:27017/wanderlust";
+// Connect to MongoDB
+const dbUrl = "mongodb://127.0.0.1:27017/wanderlust";
 
 main()
   .then(() => {
@@ -29,7 +35,7 @@ main()
   });
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  await mongoose.connect(dbUrl);
 }
 
 // Set views engine and middleware
@@ -52,11 +58,6 @@ const sessionOption = {
   },
 };
 
-// Root route
-app.get("/", (req, res) => {
-  res.send("Hi, I am root");
-});
-
 // using session
 app.use(session(sessionOption));
 app.use(flash());
@@ -74,19 +75,20 @@ passport.deserializeUser(User.deserializeUser());
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
+  res.locals.currUser = req.user;
   next();
 });
 
 // Create fake user for testing
-app.get("/demouser", async (req, res) => {
-  let fakeUser = new User({
-    email: "student@gmail.com",
-    username: "deleta-student",
-  });
+// app.get("/demouser", async (req, res) => {
+//   let fakeUser = new User({
+//     email: "student@gmail.com",
+//     username: "deleta-student",
+//   });
 
-  let registeredUser = await User.register(fakeUser, "helloworld");
-  res.send(registeredUser);
-});
+//   let registeredUser = await User.register(fakeUser, "helloworld");
+//   res.send(registeredUser);
+// });
 
 // Listing and Review routes
 app.use("/listings", listingsRouter);
